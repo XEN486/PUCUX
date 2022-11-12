@@ -1,0 +1,46 @@
+-=CASPL=-
+set bldr="loadx"
+set compiler="/usr/local/i386elfgcc/bin/i386-elf-gcc"
+set assembler="./tools/NASM/nasm"
+set linker="/usr/local/i386elfgcc/bin/i386-elf-ld"
+set qemuPath="./tools/QEMU/qemu-system-i386"
+
+-=CASPL=-
+echo Compiling drivers...
+wsl %compiler% -w -ffreestanding -c ./drivers/keyboard.c -o ./drivers/keyboard.o
+wsl %compiler% -w -ffreestanding -c ./cpu/ports.c -o ./cpu/ports.o
+wsl %compiler% -w -ffreestanding -c ./drivers/screen.c -o ./drivers/screen.o
+
+echo Compiling the kernel...
+wsl %compiler% -w -ffreestanding -c ./krnl/krnl.c -o ./krnl/krnl.o
+
+echo Compiling libc...
+wsl %compiler% -w -ffreestanding -c ./libc/mem.c -o ./libc/mem.o
+wsl %compiler% -w -ffreestanding -c ./libc/string.c -o ./libc/string.o
+
+echo Compiling interrupt stuff...
+wsl %compiler% -w -ffreestanding -c ./cpu/idt.c -o ./cpu/idt.o
+wsl %compiler% -w -ffreestanding -c ./cpu/isr.c -o ./cpu/isr.o
+wsl %compiler% -w -ffreestanding -c ./cpu/timer.c -o ./cpu/timer.o
+
+echo Compiling the command line...
+wsl %compiler% -w -ffreestanding -c ./cmd/cmd.c -o ./cmd/cmd.o
+
+echo Compiling XEInit...
+wsl %compiler% -w -ffreestanding -c ./xeinit/xeinit.c -o ./xeinit/xeinit.o
+
+echo Compiling programs...
+wsl %compiler% -w -ffreestanding -c ./programs/demo.c -o ./programs/demo.o
+
+echo Assembling bootloader code...
+%assembler% ./cpu/interrupt.S -f elf -o ./cpu/interrupt.o
+%assembler% ./boot/krnl_enter.S -f elf -o ./boot/krnl_enter.o
+%assembler% -f bin -o ./%bldr%.bin ./boot/bootloader.S
+
+echo Linking everything together...
+wsl %linker% -ffreestanding -shared -o ./krnl.bin -Ttext 0x1000 ./boot/krnl_enter.o ./krnl/krnl.o ./cpu/ports.o ./drivers/screen.o ./libc/mem.o ./libc/string.o ./cpu/idt.o ./cpu/isr.o ./cpu/interrupt.o ./cpu/timer.o ./drivers/keyboard.o ./cmd/cmd.o ./xeinit/xeinit.o ./programs/demo.o --oformat binary
+
+echo Concatenating bootloader and kernel...
+type %bldr%.bin krnl.bin > OS.bin
+
+echo Complete!

@@ -1,0 +1,21 @@
+-=-=PUCUX Build Instructions=-=-
+Step 1:
+Install WSL (Ubuntu)
+
+Step 2:
+!!WARNING: This can take up to 10 hours but you only have to do this once!!
+Cross-Compile Binutils and GCC to target i386-elf architecture (process described at https://github.com/cfenollosa/os-tutorial/tree/master/11-kernel-crosscompiler).
+
+Step 3:
+Create a CA development environment. (ca produce devenv)
+
+Step 4:
+Build the OS via CA. (ca produce os)
+
+Step 5:
+Test the OS via CA. (ca test)
+
+-=-=TIPS=-=-
+If you want to remove all object files and delete the OS.bin, run clean.bat
+If you want to use Notepad++ as your editor you can change npp.bat to reference the path of where Notepad++
+If you want to quickly open cmd in this directory just run cmd.bat
